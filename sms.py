@@ -65,17 +65,21 @@ def add_record():
 
 
 def remove_record():
-    if not tree.selection():
-        mb.showerror('Error!', 'Please select an item from the database')
-    else:
-        current_item = tree.focus()
-        values = tree.item(current_item)
-        selection = values["values"]
-        tree.delete(current_item)
-        connector.execute('DELETE FROM SCHOOL_MANAGEMENT WHERE STUDENT_ID=%d' % selection[0])
-        connector.commit()
-        mb.showinfo('Done', 'The record you wanted deleted was successfully deleted.')
-        display_records()
+    try:
+        if not tree.selection():
+            mb.showerror('Error!', 'Please select an item from the database')
+        else:
+            current_item = tree.focus()
+            values = tree.item(current_item)
+            selection = values["values"]
+            tree.delete(current_item)
+            connector.execute('DELETE FROM SCHOOL_MANAGEMENT WHERE STUDENT_ID=%d' % selection[0])
+            connector.commit()
+            mb.showinfo('Done', 'The record you wanted deleted was successfully deleted.')
+            display_records()
+    except Exception as e:
+        mb.showerror('Error!', f'An error occurred while removing the record: {str(e)}')
+
 
 
 def view_record():
@@ -83,10 +87,20 @@ def view_record():
     current_item = tree.focus()
     values = tree.item(current_item)
     selection = values["values"]
-    date = datetime.date(int(selection[5][:4]), int(selection[5][5:7]), int(selection[5][8:]))
-    name_strvar.set(selection[1]); email_strvar.set(selection[2])
-    contact_strvar.set(selection[3]); gender_strvar.set(selection[4])
-    dob.set_date(date); stream_strvar.set(selection[6])
+    
+    try:
+        date = datetime.date(int(selection[5][:4]), int(selection[5][5:7]), int(selection[5][8:]))
+    except ValueError:
+        messagebox.showerror(title='Invalid Date', message='Invalid date format in record')
+        return
+    
+    try:
+        name_strvar.set(selection[1]); email_strvar.set(selection[2])
+        contact_strvar.set(selection[3]); gender_strvar.set(selection[4])
+        dob.set_date(date); stream_strvar.set(selection[6])
+    except IndexError:
+        messagebox.showerror(title='Missing Data', message='Selected record has missing data')
+        return
 
 import tkinter.messagebox as messagebox
 
@@ -94,17 +108,20 @@ import os
 import tkinter.messagebox as messagebox
 
 def print_record():
-    curr = connector.execute('SELECT * FROM SCHOOL_MANAGEMENT')
-    data = curr.fetchall()
-    
-    file_path = 'school_records.txt'
-    
-    with open(file_path, 'w') as f:
-        for record in data:
-            f.write(str(record) + '\n')
-    
-    file_location = os.path.abspath(file_path)
-    messagebox.showinfo(title='File Saved', message=f"Records written to file: {file_path}\n\nFile location: {file_location}")
+    try:
+        curr = connector.execute('SELECT * FROM SCHOOL_MANAGEMENT')
+        data = curr.fetchall()
+
+        file_path = 'school_records.txt'
+
+        with open(file_path, 'w') as f:
+            for record in data:
+                f.write(str(record) + '\n')
+
+        file_location = os.path.abspath(file_path)
+        messagebox.showinfo(title='File Saved', message=f"Records written to file: {file_path}\n\nFile location: {file_location}")
+    except Exception as e:
+        messagebox.showerror(title='Error', message=f'An error occurred while writing to file: {str(e)}')
 
 
 
