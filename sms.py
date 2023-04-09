@@ -88,6 +88,25 @@ def view_record():
     contact_strvar.set(selection[3]); gender_strvar.set(selection[4])
     dob.set_date(date); stream_strvar.set(selection[6])
 
+import tkinter.messagebox as messagebox
+
+import os
+import tkinter.messagebox as messagebox
+
+def print_record():
+    curr = connector.execute('SELECT * FROM SCHOOL_MANAGEMENT')
+    data = curr.fetchall()
+    
+    file_path = 'school_records.txt'
+    
+    with open(file_path, 'w') as f:
+        for record in data:
+            f.write(str(record) + '\n')
+    
+    file_location = os.path.abspath(file_path)
+    messagebox.showinfo(title='File Saved', message=f"Records written to file: {file_path}\n\nFile location: {file_location}")
+
+
 
 # Initializing the GUI window
 main = Tk()
@@ -143,6 +162,7 @@ Button(center_frame, text='Delete Record', font=labelfont, command=remove_record
 Button(center_frame, text='View Record', font=labelfont, command=view_record, width=15).place(relx=0.1, rely=0.35)
 Button(center_frame, text='Reset Fields', font=labelfont, command=reset_fields, width=15).place(relx=0.1, rely=0.45)
 Button(center_frame, text='Delete database', font=labelfont, command=reset_form, width=15).place(relx=0.1, rely=0.55)
+Button(center_frame, text='Print to File', font=labelfont, command=print_record, width=15).place(relx=0.1, rely=0.65)
 
 # Placing components in the right frame
 Label(right_frame, text='Students Records', font=headlabelfont, bg='DarkGreen', fg='LightCyan').pack(side=TOP, fill=X)
@@ -182,4 +202,3 @@ display_records()
 # Finalizing the GUI window
 main.update()
 main.mainloop()
-
