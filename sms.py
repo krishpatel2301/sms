@@ -1,3 +1,8 @@
+#Student : Krish Parimal Patel
+#Student ID : 8885555
+#Author : Madiha Kazmi
+#Date Created : April 8, 2023
+#purpose : The purpose of this Python code is to create a GUI-based school management system that connects to a SQLite database and allows users to add, view, delete, and display student records.
 import datetime
 from tkinter import *
 import tkinter.messagebox as mb
@@ -27,78 +32,80 @@ def reset_fields():
     dob.set_date(datetime.datetime.now().date())
 
 
-def reset_form():
+def reset_form():                                                                          # This function clears the form and resets all fields to their default values
     global tree
-    tree.delete(*tree.get_children())
-    reset_fields()
+    tree.delete(*tree.get_children())                                                      # Clear the data in the tree view
+    reset_fields()                                                                         # Reset all form fields
 
 
-def display_records():
-    tree.delete(*tree.get_children())
-    curr = connector.execute('SELECT * FROM SCHOOL_MANAGEMENT')
-    data = curr.fetchall()
+def display_records():                                                                     # This function retrieves all records from the database and displays them in the tree view
+    tree.delete(*tree.get_children())                                                      # Clear the data in the tree view
+    curr = connector.execute('SELECT * FROM SCHOOL_MANAGEMENT')                            # Execute a SELECT query to retrieve all records from the table
+    data = curr.fetchall()                                                                 # Fetch all the records
     for records in data:
-        tree.insert('', END, values=records)
+        tree.insert('', END, values=records)                                               # Insert each record into the tree view as a new row
 
 
-def add_record():
+def add_record():                                                                          # This function retrieves the values entered in the form fields and adds a new record to the database
     global name_strvar, email_strvar, contact_strvar, gender_strvar, dob, stream_strvar
-    name = name_strvar.get()
+    # Retrieve the values from the form fields
+    name = name_strvar.get()                                                              
     email = email_strvar.get()
     contact = contact_strvar.get()
     gender = gender_strvar.get()
     DOB = dob.get_date()
     stream = stream_strvar.get()
-    if not name or not email or not contact or not gender or not DOB or not stream:
+    if not name or not email or not contact or not gender or not DOB or not stream:        # Check if any of the fields are empty
         mb.showerror('Error!', "Please fill all the missing fields!!")
     else:
         try:
             connector.execute(
             'INSERT INTO SCHOOL_MANAGEMENT (NAME, EMAIL, PHONE_NO, GENDER, DOB, STREAM) VALUES (?,?,?,?,?,?)', (name, email, contact, gender, DOB, stream)
             )
-            connector.commit()
+            connector.commit()                                                            # Commit the changes to the database
             mb.showinfo('Record added', f"Record of {name} was successfully added")
             reset_fields()
             display_records()
-        except:
+        except:                                                                           # If an exception is raised, show an error message to the user
             mb.showerror('Wrong type', 'The type of the values entered is not accurate. Pls note that the contact field can only contain numbers')
 
 
 def remove_record():
     try:
-        if not tree.selection():
+        if not tree.selection():                                                          # Check if a row is selected in the Treeview
             mb.showerror('Error!', 'Please select an item from the database')
         else:
-            current_item = tree.focus()
+            current_item = tree.focus()                                                   # Get the selected row's values and delete the row from the Treeview
             values = tree.item(current_item)
             selection = values["values"]
             tree.delete(current_item)
-            connector.execute('DELETE FROM SCHOOL_MANAGEMENT WHERE STUDENT_ID=%d' % selection[0])
+            connector.execute('DELETE FROM SCHOOL_MANAGEMENT WHERE STUDENT_ID=%d' % selection[0])          # Delete the record from the database
             connector.commit()
-            mb.showinfo('Done', 'The record you wanted deleted was successfully deleted.')
+            mb.showinfo('Done', 'The record you wanted deleted was successfully deleted.')                 # Show success message and refresh the Treeview
             display_records()
     except Exception as e:
-        mb.showerror('Error!', f'An error occurred while removing the record: {str(e)}')
+        mb.showerror('Error!', f'An error occurred while removing the record: {str(e)}')                    # Show error message if any error occurs
 
 
 
 def view_record():
     global name_strvar, email_strvar, contact_strvar, gender_strvar, dob, stream_strvar
+     # Get currently selected record in the treeview widget
     current_item = tree.focus()
     values = tree.item(current_item)
     selection = values["values"]
     
-    try:
+    try:                                                                                                     # Extract date from the record selection and convert to date object
         date = datetime.date(int(selection[5][:4]), int(selection[5][5:7]), int(selection[5][8:]))
-    except ValueError:
+    except ValueError:                                                                                       # Show error message if the date format in record is invalid
         messagebox.showerror(title='Invalid Date', message='Invalid date format in record')
         return
     
-    try:
+    try:                                                                                                     # Set the values of tkinter StringVars based on the selected record
         name_strvar.set(selection[1]); email_strvar.set(selection[2])
         contact_strvar.set(selection[3]); gender_strvar.set(selection[4])
         dob.set_date(date); stream_strvar.set(selection[6])
-    except IndexError:
+    except IndexError:                                                                                       # Show error message if the selected record has missing data
         messagebox.showerror(title='Missing Data', message='Selected record has missing data')
         return
 
@@ -108,19 +115,19 @@ import os
 import tkinter.messagebox as messagebox
 
 def print_record():
-    try:
+    try:                                                                                                     # Select all records from the database
         curr = connector.execute('SELECT * FROM SCHOOL_MANAGEMENT')
         data = curr.fetchall()
 
-        file_path = 'school_records.txt'
+        file_path = 'school_records.txt'                                                                      # Define the file path to store the records
 
-        with open(file_path, 'w') as f:
+        with open(file_path, 'w') as f:                                                                       # Open the file and write each record to it
             for record in data:
                 f.write(str(record) + '\n')
 
-        file_location = os.path.abspath(file_path)
+        file_location = os.path.abspath(file_path)                                                             # Get the absolute path of the file and display a message box showing the file path
         messagebox.showinfo(title='File Saved', message=f"Records written to file: {file_path}\n\nFile location: {file_location}")
-    except Exception as e:
+    except Exception as e:                                                                                     # If any exception occurs during the file writing process, show an error message
         messagebox.showerror(title='Error', message=f'An error occurred while writing to file: {str(e)}')
 
 
